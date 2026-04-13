@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-10">
+        <h1 class="text-4xl font-bold text-gray-800 flex items-center gap-3">
+            📋 My TODOs
+        </h1>
+        <button
+            hx-get="/todos/"
+            hx-target="#todo-list"
+            hx-swap="innerHTML"
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-medium transition flex items-center gap-2">
+            最新に更新
+        </button>
+    </div>
+
+    <!-- 新規作成フォーム -->
+    <div class="mb-12 bg-gray-50 p-6 rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4 text-gray-700">新しいTODOを追加</h2>
+        <form hx-post="/todos/"
+            hx-ext="json-enc" 
+            hx-target="#todo-list"
+            hx-swap="beforeend"
+            class="flex flex-wrap gap-3">
+            <input type="text" name="title" placeholder="TODOのタイトル"
+                class="flex-1 min-w-[280px] px-5 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500"
+                required>
+            <input type="text" name="description" placeholder="詳細（任意）"
+                class="flex-1 min-w-[200px] px-5 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+            <select name="priority" class="px-5 py-3 border border-gray-300 rounded-2xl bg-white">
+                <option value="1">🔥 高優先</option>
+                <option value="2" selected>中優先</option>
+                <option value="3">低優先</option>
+            </select>
+            <button type="submit"
+                class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-2xl transition">
+                追加
+            </button>
+        </form>
+    </div>
+
+    <!-- TODO一覧 -->
+    <div id="todo-list" class="space-y-4">
+        <!-- ここにHTMXでTODOが動的に挿入される -->
+    </div>
+</div>
+
+<script>
+    // ページ読み込み時にTODO一覧を読み込む
+    document.addEventListener('DOMContentLoaded', function(){
+        htmx.ajax('GET', '/todos/', {
+            target: '#todo-list',
+            swap: 'innerHTML'
+        });
+    });
+
+    // -- ここから追加 --
+    // HTMXがリクエストを送る前に、数値を数値型として上書きする
+    document.body.addEventListener('htmx:configRequest', function(evt){
+        if (evt.detail.parameters['priority']) {
+            evt.detail.parameters['priority'] = parseInt(evt.detail.parameters['priority']);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% for todo in todos %}
+    {% include "todo_item.html" %}
+{% endfor %}
+
+{% if not todos %}
+    <div class="text-center py-12 text-gray-500">
+        まだTODOがありません。上のフォームから追加してみてください！
+    </div>
+{% endif %}

@@ -1,0 +1,55 @@
+<div class="todo-item bg-white border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all
+    {% if todo.is_completed %}todo-completed bg-gray-50 border-gray-200{% endif %}
+    {% if todo.priority == 1 %}border-l-4 border-red-500{% elif todo.priority == 3 %}border-l-4 border-green-500{% else %}border-l-4 border-orange-500{% endif %}">
+    
+    <div class="flex justify-between items-start">
+        <div class="flex-1">
+            <h3 class="text-xl font-semibold {% if todo.is_completed %}line-through text-gray-500{% else %}text-gray-800{% endif %}">
+                {{ todo.title }}
+            </h3>
+            {% if todo.description %}
+                <p class="mt-2 text-gray-600 text-sm">{{ todo.description}}</p>
+            {% endif %}
+
+            <div class="flex items-center gap-4 mt-4 text-sm text-gray-500">
+                {% if todo.due_date %}
+                    <span>
+                        📅 {{ todo.due_date.strftime('%Y-%m-%d') }}
+                    </span>
+                {% endif %}
+                <span class="font-medium
+                    {% if todo.priority == 1 %} text-red-600
+                    {% elif todo.priority == 2 %} text-orange-600
+                    {% else %} text-green-600 {% endif %}">
+                    優先度: {{ todo.priority }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2 ml-6">
+            <!-- 完了トグルボタン -->
+            <button
+                hx-patch="/todos/{{ todo.id }}/complete"
+                hx-target="closest .todo-item"
+                hx-swap="outerHTML"
+                class="px-5 py-2 text-sm rounded-xl transition whitespace-nowrap
+                    {% if todo.is_completed %}
+                        bg-gray-200 hover:bg-gray-300 text-gray-700
+                    {% else %}
+                        bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-medium
+                    {% endif %}">
+                {% if todo.is_completed %}未完了に戻す{% else %}完了 ✓{% endif %}
+            </button>
+
+            <!-- 削除ボタン -->
+            <button
+                hx-delete="/todos/{{ todo.id }}"
+                hx-target="closest .todo-item"
+                hx-swap="outerHTML"
+                hx-confirm="本当に削除しますか？"
+                class="px-5 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-xl transition">
+                削除
+            </button>
+        </div>
+    </div>
+</div>
