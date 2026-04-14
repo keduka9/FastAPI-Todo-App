@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from .core.database import created_db_and_tables
@@ -26,3 +28,11 @@ app.include_router(frontend_router)     # <- これを追加（重要！）
 @app.get("/")
 async def root():
     return {"message": "FastAPI TODOアプリが動いています！"}
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print(exc.errors())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": str(exc.errors())}
+    )

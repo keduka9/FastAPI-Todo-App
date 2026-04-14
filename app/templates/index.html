@@ -28,6 +28,8 @@
                 required>
             <input type="text" name="description" placeholder="詳細（任意）"
                 class="flex-1 min-w-[200px] px-5 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+            <input type="date" name="due_date"
+                class="px-5 py-3 border border-gray-300 rounded-2xl bg-white focus:outline-none focus:border-blue-500">
             <select name="priority" class="px-5 py-3 border border-gray-300 rounded-2xl bg-white">
                 <option value="1">🔥 高優先</option>
                 <option value="2" selected>中優先</option>
@@ -55,12 +57,23 @@
         });
     });
 
-    // -- ここから追加 --
-    // HTMXがリクエストを送る前に、数値を数値型として上書きする
+    // デバックコード
     document.body.addEventListener('htmx:configRequest', function(evt){
+        // 現在の送信パラメータを取得
+        let params = evt.detail.parameters;
+
+        // 数値を整数に変換（既存）
         if (evt.detail.parameters['priority']) {
             evt.detail.parameters['priority'] = parseInt(evt.detail.parameters['priority']);
         }
+
+        // due_dateが空文字の場合、明示的にnullをセットする（念のため）
+        if (params['due_date'] === "") {
+            params['due_date'] = null;
+        }
+
+        // デバッグ用：実際に送信される内容をコンソールに表示
+        console.log("送信されるデータ:", params);
     });
 </script>
 {% endblock %}

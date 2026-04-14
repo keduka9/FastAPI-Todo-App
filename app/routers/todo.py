@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Form, Request, Response, Body
 from sqlmodel import Session, select
 from ..schemas.todo import TodoCreate, TodoResponse
 from ..models.todo import Todo
@@ -6,37 +6,36 @@ from ..dependencies import get_session
 from typing import Optional # 追加
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from datetime import date, datetime
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 templates = Jinja2Templates(directory="app/templates")
 
-# @router.post("/", response_model=TodoResponse)    JSONではなく、HTML(テンプレート)を返すため、response ~ は外す
 @router.post("/")
 async def create_todo(
-    # todo: TodoCreate, session: Session = Depends(get_session)　   エラー回避のため、一時的にコメントアウト
     request: Request,
-    title: str = Form(...),
-    description: Optional[str] = Form(None),
-    priority: int = Form(2),
+    todo_in: TodoCreate,
     session: Session = Depends(get_session)
 
 ):
-    # db_todo = Todo.model_validate(todo)                           エラー回避のため、一時的にコメントアウト
-    db_todo = Todo(
-        title = title,
-        description=description,
-        priority=priority
+    # dict()を使って辞書として展開し、Todoモデルを作成
+    new_todo = Todo(
+        title=todo_in.title,
+        description=todo_in.description,
+        priority=todo_in.priority,
+        due_date=todo_in.due_date,      # ここで確実にdue_dateを渡す
+        is_completed=False
     )
-    session.add(db_todo)
+
+    session.add(new_todo)
     session.commit()
-    session.refresh(db_todo)
+    session.refresh(new_todo)
 
     # JSONではなく、1件分のTODOを表示するHTMLテンプレートを返す
-    # return db_todo
     return templates.TemplateResponse(
         request=request,
         name="todo_item.html",
-        context={"todo": db_todo}
+        context={"todo": new_todo, "today": date.today()}
     )
 
 # @router.get("/", response_model=list[TodoResponse])   TODO全体を表示させるように変更する
@@ -52,7 +51,10 @@ async def read_todos(request: Request, session: Session = Depends(get_session)):
     return templates.TemplateResponse(
         request=request,
         name="todo_list_inner.html",    # 新しく作るファイル
-        context={"todos": todos}
+        context={
+            "today": date.today(),
+            "todos": todos
+        }
     )
 
     # こっちは古い書き方で、エラーが出てしまうので、コメントアウト
@@ -109,7 +111,7 @@ async def toggle_complete(
     return templates.TemplateResponse(
         request=request,
         name="todo_item.html",
-        context={"todo": db_todo}
+        context={"todo": db_todo, "today": date.today()}
     )
 @router.delete("/{todo_id}")
 async def delete_todo(todo_id: int, session: Session = Depends(get_session)):
